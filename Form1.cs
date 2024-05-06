@@ -175,6 +175,45 @@ namespace Raindance
             }
         }
 
+        private void RunCommandsInRepositoryPath(){
+            // Get the repository path from the configuration
+            string repositoryPath = config.IhubRepoPath;
+            // Check if the path is valid
+            if (Directory.Exists(repositoryPath))
+            {
+                // Get the list of commands to run
+                foreach (string command in clb_run.CheckedItems)
+                {
+                    try
+                    {
+                        // Create a new process to run the command
+                        ProcessStartInfo startInfo = new ProcessStartInfo
+                        {
+                            FileName = "cmd.exe",
+                            Arguments = $"/c {command}",
+                            WorkingDirectory = repositoryPath,
+                            UseShellExecute = false,
+                            RedirectStandardOutput = true,
+                            CreateNoWindow = true
+                        };
+                        Process process = new Process { StartInfo = startInfo };
+                        process.Start();
+                        // Read the output of the process
+                        string output = process.StandardOutput.ReadToEnd();
+                        txt_terminal.Text += $"Command: {command}\n{output}\n";
+                    }
+                    catch (Exception ex)
+                    {
+                        txt_terminal.Text += $"Error running command {command}: {ex.Message}\n";
+                    }
+                }
+            }
+            else
+            {
+                txt_terminal.Text += "Invalid repository path.\n";
+            }
+        }
+
         private void btn_raindance_Click(object sender, EventArgs e)
         {
             KillSelectedProcesses();
