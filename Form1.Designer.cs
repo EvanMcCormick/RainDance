@@ -66,22 +66,23 @@
             // 
             this.txt_terminal.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.txt_terminal.ForeColor = System.Drawing.SystemColors.Window;
-            this.txt_terminal.Location = new System.Drawing.Point(27, 295);
+            this.txt_terminal.Location = new System.Drawing.Point(27, 274);
             this.txt_terminal.Multiline = true;
             this.txt_terminal.Name = "txt_terminal";
             this.txt_terminal.ReadOnly = true;
             this.txt_terminal.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txt_terminal.Size = new System.Drawing.Size(445, 124);
+            this.txt_terminal.Size = new System.Drawing.Size(445, 145);
             this.txt_terminal.TabIndex = 3;
             // 
             // btn_raindance
             // 
-            this.btn_raindance.Location = new System.Drawing.Point(384, 245);
+            this.btn_raindance.Location = new System.Drawing.Point(333, 245);
             this.btn_raindance.Name = "btn_raindance";
-            this.btn_raindance.Size = new System.Drawing.Size(88, 44);
+            this.btn_raindance.Size = new System.Drawing.Size(139, 23);
             this.btn_raindance.TabIndex = 5;
             this.btn_raindance.Text = "Rain Dance";
             this.btn_raindance.UseVisualStyleBackColor = true;
+            this.btn_raindance.Click += new System.EventHandler(this.btn_raindance_Click);
             // 
             // btn_clear
             // 
@@ -115,10 +116,11 @@
             // 
             // clb_stop
             // 
+            this.clb_stop.CheckOnClick = true;
             this.clb_stop.FormattingEnabled = true;
             this.clb_stop.Items.AddRange(new object[] {
-            "VSC",
-            "NodeJS"});
+            "code",
+            "nodejs"});
             this.clb_stop.Location = new System.Drawing.Point(10, 19);
             this.clb_stop.MultiColumn = true;
             this.clb_stop.Name = "clb_stop";
@@ -138,6 +140,7 @@
             // 
             // clb_delete
             // 
+            this.clb_delete.CheckOnClick = true;
             this.clb_delete.FormattingEnabled = true;
             this.clb_delete.Items.AddRange(new object[] {
             ".cache folder",
@@ -162,6 +165,7 @@
             // 
             // clb_run
             // 
+            this.clb_run.CheckOnClick = true;
             this.clb_run.FormattingEnabled = true;
             this.clb_run.Items.AddRange(new object[] {
             "yarn",

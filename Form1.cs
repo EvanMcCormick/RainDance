@@ -93,6 +93,54 @@ namespace Raindance
             }
         }
 
+
+
+        private void KillSelectedProcesses()
+        {
+            // Initialize an empty string to accumulate the results
+            string terminationResults = "";
+
+            foreach (string processName in clb_stop.CheckedItems)
+            {
+                try
+                {
+                    // Get the list of processes by name
+                    Process[] processes = Process.GetProcessesByName(processName);
+                    if (processes.Length > 0)
+                    {
+                        // Iterate and kill each process
+                        foreach (Process process in processes)
+                        {
+                            process.Kill();
+                            terminationResults += $"Terminated: {process.ProcessName}\n";
+                        }
+                    }
+                    else
+                    {
+                        // If no processes found, add a note
+                        terminationResults += $"No processes found for: {processName}\n";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log the error message
+                    terminationResults += $"Error terminating {processName}: {ex.Message}\n";
+                }
+            }
+            // Add an extra newline at the end of the string (if needed)
+            if (!terminationResults.EndsWith("\n"))
+            {
+                terminationResults += "\n";
+            }
+
+            // Display the accumulated results in the terminal-like TextBox
+            txt_terminal.Text = terminationResults;
+        }
+
+        private void btn_raindance_Click(object sender, EventArgs e)
+        {
+            KillSelectedProcesses();
+        }
     }
- 
+
 }
