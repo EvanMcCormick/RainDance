@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Raindance
@@ -9,6 +10,7 @@ namespace Raindance
     public partial class Form1 : Form
     {
         private Configuration config;
+        public ILogger Logger { get; set; }
 
         public Form1()
         {
@@ -49,8 +51,6 @@ namespace Raindance
             }
         }
 
-
-
         private void txt_IhubRepoPath_TextChanged(object sender, EventArgs e)
         {
             config.IhubRepoPath = txt_IhubRepoPath.Text;
@@ -65,10 +65,7 @@ namespace Raindance
             // Add more properties as needed
         }
 
-        private void clb_stop_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
+        private void clb_stop_SelectedIndexChanged(object sender, EventArgs e) { }
 
         private void btn_selectall_Click(object sender, EventArgs e)
         {
@@ -93,12 +90,8 @@ namespace Raindance
             }
         }
 
-
-
         private void KillSelectedProcesses()
         {
-            System.Text.StringBuilder terminationResults = new System.Text.StringBuilder();
-
             foreach (string processName in clb_stop.CheckedItems)
             {
                 try
@@ -117,26 +110,25 @@ namespace Raindance
                     // Report summary based on the count of terminations
                     if (terminationCount > 0)
                     {
-                        terminationResults.AppendLine($"Terminated {terminationCount} instance(s) of: {processName}");
+                        Logger.LogInformation(
+                            $"Terminated {terminationCount} instance(s) of: {processName}"
+                        );
                     }
                     else
                     {
-                        terminationResults.AppendLine($"No processes found for: {processName}");
+                        Logger.LogInformation($"No processes found for: {processName}");
                     }
                 }
                 catch (Exception ex)
                 {
                     // Log errors while attempting to terminate processes
-                    terminationResults.AppendLine($"Error terminating {processName}: {ex.Message}");
+                    Logger.LogError(ex, $"Error terminating {processName}");
                 }
             }
-
-            // Display the accumulated results in the terminal-like TextBox
-            txt_terminal.Text = terminationResults.ToString();
         }
 
-
-        private void RunCommandsInRepositoryPath(){
+        private void RunCommandsInRepositoryPath()
+        {
             // Get the repository path from the configuration
             string repositoryPath = config.IhubRepoPath;
             // Check if the path is valid
@@ -161,61 +153,35 @@ namespace Raindance
                         process.Start();
                         // Read the output of the process
                         string output = process.StandardOutput.ReadToEnd();
-                        txt_terminal.Text += $"Command: {command}\n{output}\n";
+                        // Log the command and output
+                        Logger.LogInformation($"Command: {command}\n{output}");
                     }
                     catch (Exception ex)
                     {
-                        txt_terminal.Text += $"Error running command {command}: {ex.Message}\n";
+                        // Log the error message
+                        Logger.LogError(ex, $"Error running command {command}");
                     }
                 }
             }
             else
             {
-                txt_terminal.Text += "Invalid repository path.\n";
-            }
-        }
-
-        private void RunCommandsInRepositoryPath(){
-            // Get the repository path from the configuration
-            string repositoryPath = config.IhubRepoPath;
-            // Check if the path is valid
-            if (Directory.Exists(repositoryPath))
-            {
-                // Get the list of commands to run
-                foreach (string command in clb_run.CheckedItems)
-                {
-                    try
-                    {
-                        // Create a new process to run the command
-                        ProcessStartInfo startInfo = new ProcessStartInfo
-                        {
-                            FileName = "cmd.exe",
-                            Arguments = $"/c {command}",
-                            WorkingDirectory = repositoryPath,
-                            UseShellExecute = false,
-                            RedirectStandardOutput = true,
-                            CreateNoWindow = true
-                        };
-                        Process process = new Process { StartInfo = startInfo };
-                        process.Start();
-                        // Read the output of the process
-                        string output = process.StandardOutput.ReadToEnd();
-                        txt_terminal.Text += $"Command: {command}\n{output}\n";
-                    }
-                    catch (Exception ex)
-                    {
-                        txt_terminal.Text += $"Error running command {command}: {ex.Message}\n";
-                    }
-                }
-            }
-            else
-            {
-                txt_terminal.Text += "Invalid repository path.\n";
+                // Log an error if the repository path is invalid
+                Logger.LogError("Invalid repository path.");
             }
         }
 
         private void btn_raindance_Click(object sender, EventArgs e)
         {
+            // clear the terminal
+            rtxt_terminal.Clear();
+
+            // if nothing is checked, log a warning and return
+            if (clb_stop.CheckedItems.Count == 0 && clb_delete.CheckedItems.Count == 0 && clb_run.CheckedItems.Count == 0)
+            {
+                Logger.LogWarning("No actions selected. Please select actions to perform.");
+                return;
+            }
+
             KillSelectedProcesses();
             RunCommandsInRepositoryPath();
         }
@@ -230,8 +196,6 @@ namespace Raindance
                 txt_IhubRepoPath.Text = config.IhubRepoPath;
                 SaveConfiguration();
             }
-
         }
     }
-
 }

@@ -1,22 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.Extensions.Logging;
+using RainDance.Services.Logging;
+using System;
 using System.Windows.Forms;
 
 namespace Raindance
 {
     internal static class Program
     {
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main()
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+
+            // Configure logging
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                // You can add other logging configurations here if needed
+            });
+
+            // Initialize the main form
+            var mainForm = new Form1();
+            // Assuming you have a public TextBox named LogTextBox in Form1
+            var loggerProvider = new TextBoxLoggerProvider(mainForm.rtxt_terminal);
+            loggerFactory.AddProvider(loggerProvider);
+
+            // Set up logger for use within Form1 or elsewhere
+            mainForm.Logger = loggerFactory.CreateLogger("MainForm");
+
+            // Run the application
+            Application.Run(mainForm);
         }
     }
 }
