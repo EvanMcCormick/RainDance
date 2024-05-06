@@ -66,6 +66,9 @@ this.btn_browse = new System.Windows.Forms.Button();
             // 
             // txt_terminal
             // 
+            this.txt_terminal.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txt_terminal.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.txt_terminal.ForeColor = System.Drawing.SystemColors.Window;
             this.txt_terminal.Location = new System.Drawing.Point(27, 274);
