@@ -1,4 +1,6 @@
-﻿namespace Raindance
+﻿using System.Windows.Forms;
+
+namespace Raindance
 {
     partial class Form1
     {
@@ -144,11 +146,9 @@
             this.clb_delete.CheckOnClick = true;
             this.clb_delete.FormattingEnabled = true;
             this.clb_delete.Items.AddRange(new object[] {
-            ".cache",
+            "App/.cache",
             ".nx",
-            "bin",
-            "obj",
-            "easycaching"});
+            "node_modules"});
             this.clb_delete.Location = new System.Drawing.Point(9, 29);
             this.clb_delete.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.clb_delete.Name = "clb_delete";
@@ -178,7 +178,9 @@
             "yarn build:lighthouse",
             "yarn prestart",
             "npx nx reset",
-            "restart VSC"});
+            "code"});
+            this.clb_run.DisplayMember = "Text";
+            this.clb_run.ValueMember = "Value";
             this.clb_run.Location = new System.Drawing.Point(9, 29);
             this.clb_run.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.clb_run.Name = "clb_run";

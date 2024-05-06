@@ -189,6 +189,37 @@ namespace Raindance
             }
         }
 
+        private void DeleteSelectedFolders()
+        {
+            if (string.IsNullOrEmpty(config.IhubRepoPath) || !Directory.Exists(config.IhubRepoPath))
+            {
+                Logger.LogError("Invalid repository path.");
+                return;
+            }
+
+            // delete the selected folders relative to the repository path
+            foreach (string folderName in clb_delete.CheckedItems)
+            {
+                string folderPath = Path.Combine(config.IhubRepoPath, folderName);
+                if (Directory.Exists(folderPath))
+                {
+                    try
+                    {
+                        Directory.Delete(folderPath, true);
+                        Logger.LogInformation($"Deleted folder: {folderName}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError(ex, $"Error deleting folder: {folderName}");
+                    }
+                }
+                else
+                {
+                    Logger.LogWarning($"Folder not found: {folderName}");
+                }   
+            }
+        }
+
         private async void btn_raindance_Click(object sender, EventArgs e)
         {
             // clear the terminal
@@ -205,6 +236,7 @@ namespace Raindance
             {
                 // Perform the selected actions
                 KillSelectedProcesses();
+                DeleteSelectedFolders();
                 RunCommandsInRepositoryPath();
             });
         }

@@ -33,6 +33,9 @@ namespace Raindance.Services.Logging
                     _richTextBox.SelectionColor = GetColorForLogLevel(logLevel);
                     _richTextBox.AppendText(message + Environment.NewLine);
                     _richTextBox.SelectionColor = _richTextBox.ForeColor;
+
+                    // Ensure the last line is visible
+                    _richTextBox.ScrollToCaret();
                 }));
             }
         }
