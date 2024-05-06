@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
@@ -97,49 +97,88 @@ namespace Raindance
 
         private void KillSelectedProcesses()
         {
-            // Initialize an empty string to accumulate the results
-            string terminationResults = "";
+            System.Text.StringBuilder terminationResults = new System.Text.StringBuilder();
 
             foreach (string processName in clb_stop.CheckedItems)
             {
                 try
                 {
-                    // Get the list of processes by name
+                    // Retrieve all processes matching the name
                     Process[] processes = Process.GetProcessesByName(processName);
-                    if (processes.Length > 0)
+                    int terminationCount = 0;
+
+                    // Terminate all instances and count the number of terminations
+                    foreach (Process process in processes)
                     {
-                        // Iterate and kill each process
-                        foreach (Process process in processes)
-                        {
-                            process.Kill();
-                            terminationResults += $"Terminated: {process.ProcessName}\n";
-                        }
+                        process.Kill();
+                        terminationCount++;
+                    }
+
+                    // Report summary based on the count of terminations
+                    if (terminationCount > 0)
+                    {
+                        terminationResults.AppendLine($"Terminated {terminationCount} instance(s) of: {processName}");
                     }
                     else
                     {
-                        // If no processes found, add a note
-                        terminationResults += $"No processes found for: {processName}\n";
+                        terminationResults.AppendLine($"No processes found for: {processName}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    // Log the error message
-                    terminationResults += $"Error terminating {processName}: {ex.Message}\n";
+                    // Log errors while attempting to terminate processes
+                    terminationResults.AppendLine($"Error terminating {processName}: {ex.Message}");
                 }
-            }
-            // Add an extra newline at the end of the string (if needed)
-            if (!terminationResults.EndsWith("\n"))
-            {
-                terminationResults += "\n";
             }
 
             // Display the accumulated results in the terminal-like TextBox
-            txt_terminal.Text = terminationResults;
+            txt_terminal.Text = terminationResults.ToString();
+        }
+
+
+        private void RunCommandsInRepositoryPath(){
+            // Get the repository path from the configuration
+            string repositoryPath = config.IhubRepoPath;
+            // Check if the path is valid
+            if (Directory.Exists(repositoryPath))
+            {
+                // Get the list of commands to run
+                foreach (string command in clb_run.CheckedItems)
+                {
+                    try
+                    {
+                        // Create a new process to run the command
+                        ProcessStartInfo startInfo = new ProcessStartInfo
+                        {
+                            FileName = "cmd.exe",
+                            Arguments = $"/c {command}",
+                            WorkingDirectory = repositoryPath,
+                            UseShellExecute = false,
+                            RedirectStandardOutput = true,
+                            CreateNoWindow = true
+                        };
+                        Process process = new Process { StartInfo = startInfo };
+                        process.Start();
+                        // Read the output of the process
+                        string output = process.StandardOutput.ReadToEnd();
+                        txt_terminal.Text += $"Command: {command}\n{output}\n";
+                    }
+                    catch (Exception ex)
+                    {
+                        txt_terminal.Text += $"Error running command {command}: {ex.Message}\n";
+                    }
+                }
+            }
+            else
+            {
+                txt_terminal.Text += "Invalid repository path.\n";
+            }
         }
 
         private void btn_raindance_Click(object sender, EventArgs e)
         {
             KillSelectedProcesses();
+            RunCommandsInRepositoryPath();
         }
     }
 
