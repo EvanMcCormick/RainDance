@@ -1,4 +1,4 @@
-﻿namespace Raindance
+namespace Raindance
 {
     partial class Form1
     {
@@ -40,6 +40,8 @@
             this.clb_delete = new System.Windows.Forms.CheckedListBox();
             this.gb_run = new System.Windows.Forms.GroupBox();
             this.clb_run = new System.Windows.Forms.CheckedListBox();
+this.btn_browse = new System.Windows.Forms.Button();
+            this.fbdlg_RepoPath = new System.Windows.Forms.FolderBrowserDialog();
             this.gb_stop.SuspendLayout();
             this.gb_delete.SuspendLayout();
             this.gb_run.SuspendLayout();
@@ -180,11 +182,22 @@
             this.clb_run.Size = new System.Drawing.Size(127, 154);
             this.clb_run.TabIndex = 0;
             // 
+            // btn_browse
+            // 
+            this.btn_browse.Location = new System.Drawing.Point(631, 33);
+            this.btn_browse.Name = "btn_browse";
+            this.btn_browse.Size = new System.Drawing.Size(75, 41);
+            this.btn_browse.TabIndex = 11;
+            this.btn_browse.Text = "Browse";
+            this.btn_browse.UseVisualStyleBackColor = true;
+            this.btn_browse.Click += new System.EventHandler(this.btn_browse_Click);
+            // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(497, 437);
+            this.ClientSize = new System.Drawing.Size(746, 672);
+            this.Controls.Add(this.btn_browse);
             this.Controls.Add(this.gb_run);
             this.Controls.Add(this.gb_delete);
             this.Controls.Add(this.gb_stop);
@@ -218,6 +231,8 @@
         private System.Windows.Forms.CheckedListBox clb_delete;
         private System.Windows.Forms.GroupBox gb_run;
         private System.Windows.Forms.CheckedListBox clb_run;
+        private System.Windows.Forms.Button btn_browse;
+        private System.Windows.Forms.FolderBrowserDialog fbdlg_RepoPath;
     }
 }
 

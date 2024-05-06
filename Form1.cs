@@ -181,6 +181,19 @@ namespace Raindance
             KillSelectedProcesses();
             RunCommandsInRepositoryPath();
         }
+
+        private void btn_browse_Click(object sender, EventArgs e)
+        {
+            var result = fbdlg_RepoPath.ShowDialog();
+
+            if (result == DialogResult.OK)
+            {
+                config.IhubRepoPath = fbdlg_RepoPath.SelectedPath;
+                txt_IhubRepoPath.Text = config.IhubRepoPath;
+                SaveConfiguration();
+            }
+
+        }
     }
 
 }
