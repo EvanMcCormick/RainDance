@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -170,7 +171,7 @@ namespace Raindance
             }
         }
 
-        private void btn_raindance_Click(object sender, EventArgs e)
+        private async void btn_raindance_Click(object sender, EventArgs e)
         {
             // clear the terminal
             rtxt_terminal.Clear();
@@ -182,8 +183,12 @@ namespace Raindance
                 return;
             }
 
-            KillSelectedProcesses();
-            RunCommandsInRepositoryPath();
+            await Task.Run(() =>
+            {
+                // Perform the selected actions
+                KillSelectedProcesses();
+                RunCommandsInRepositoryPath();
+            });
         }
 
         private void btn_browse_Click(object sender, EventArgs e)
