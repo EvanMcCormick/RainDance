@@ -140,6 +140,9 @@ namespace Raindance
                 {
                     try
                     {
+                        // Log the command that is being run
+                        Logger.LogInformation($"Command: {command}");
+
                         // Create a new process to run the command
                         ProcessStartInfo startInfo = new ProcessStartInfo
                         {
@@ -148,14 +151,29 @@ namespace Raindance
                             WorkingDirectory = repositoryPath,
                             UseShellExecute = false,
                             RedirectStandardOutput = true,
-                            CreateNoWindow = true
+                            CreateNoWindow = true,
+                            RedirectStandardError = true,
+                            StandardErrorEncoding = System.Text.Encoding.UTF8,
+                            StandardOutputEncoding = System.Text.Encoding.UTF8
                         };
                         Process process = new Process { StartInfo = startInfo };
+                        process.ErrorDataReceived += (sender, args) =>
+                        {
+                            if (!string.IsNullOrEmpty(args.Data))
+                            {
+                                Logger.LogError(args.Data);
+                            }
+                        };
+                        process.OutputDataReceived += (sender, args) =>
+                        {
+                            if (!string.IsNullOrEmpty(args.Data))
+                            {
+                                Logger.LogInformation(args.Data);
+                            }
+                        };
                         process.Start();
-                        // Read the output of the process
-                        string output = process.StandardOutput.ReadToEnd();
-                        // Log the command and output
-                        Logger.LogInformation($"Command: {command}\n{output}");
+                        process.BeginOutputReadLine();
+                        process.WaitForExit();
                     }
                     catch (Exception ex)
                     {

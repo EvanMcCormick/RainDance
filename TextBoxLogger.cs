@@ -24,7 +24,7 @@ namespace Raindance.Services.Logging
         {
             if (!_richTextBox.IsDisposed && formatter != null)
             {
-                string message = $"{DateTime.Now} [{logLevel}] {_categoryName}: {formatter(state, exception)}";
+                string message = $"{(logLevel > LogLevel.Information ? $"[{logLevel}]" : "")} {(_categoryName != "MainForm" ? $"{_categoryName}:" : "")}{formatter(state, exception)}";
                 _richTextBox.Invoke(new Action(() =>
                 {
                     _richTextBox.SelectionStart = _richTextBox.TextLength;
