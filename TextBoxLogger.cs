@@ -44,7 +44,7 @@ namespace Raindance.Services.Logging
                 case LogLevel.Critical: return Color.Red;
                 case LogLevel.Error: return Color.DarkRed;
                 case LogLevel.Warning: return Color.Orange;
-                case LogLevel.Information: return Color.Green;
+                case LogLevel.Information: return Color.WhiteSmoke;
                 case LogLevel.Debug: return Color.Gray;
                 case LogLevel.Trace: return Color.LightGray;
                 default: return Color.Black;
