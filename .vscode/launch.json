@@ -5,10 +5,15 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "C#: RainDance Debug",
-      "type": "dotnet",
+      "name": ".NET Core Launch (console)",
+      "type": "coreclr",
       "request": "launch",
-      "projectPath": "${workspaceFolder}/RainDance.csproj"
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/bin/Debug/net8.0-windows/Raindance.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "internalConsole"
     }
   ]
 }
