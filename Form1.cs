@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using RainDance.Services.Logging;
 
 namespace Raindance
 {
@@ -18,13 +19,19 @@ namespace Raindance
         public Form1()
         {
             InitializeComponent();
+            LoadConfiguration();
+
+            // Configure logging
             var loggerFactory = LoggerFactory.Create(builder =>
             {
-                object value = builder.AddConsole();
+                // You can add other logging configurations here if needed
             });
-            Logger = loggerFactory.CreateLogger<Form1>();
+            // Assuming you have a public TextBox named LogTextBox in Form1
+            var loggerProvider = new TextBoxLoggerProvider(rtxt_terminal);
+            loggerFactory.AddProvider(loggerProvider);
 
-            LoadConfiguration(); 
+            // Set up logger for use within mainform or elsewhere
+            Logger = loggerFactory.CreateLogger("MainForm");
 
             processManager = new ProcessManager(config, Logger, clb_stop, clb_delete, clb_run);
             clb_stop.ItemCheck += OnItemCheck;
