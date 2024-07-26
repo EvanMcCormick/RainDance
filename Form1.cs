@@ -12,11 +12,27 @@ namespace Raindance
     {
         private Configuration config;
         public ILogger Logger { get; set; }
+        private ProcessManager processManager;
+        private bool isInitializing = true;
 
         public Form1()
         {
             InitializeComponent();
-            LoadConfiguration(); // Call the configuration loading method in the constructor
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddConsole();
+            });
+            Logger = loggerFactory.CreateLogger<Form1>();
+
+            LoadConfiguration(); 
+
+            processManager = new ProcessManager(config, Logger, clb_stop, clb_delete, clb_run);
+            clb_stop.ItemCheck += OnItemCheck;
+            clb_delete.ItemCheck += OnItemCheck;
+            clb_run.ItemCheck += OnItemCheck;
+            txt_IhubRepoPath.TextChanged += Txt_IhubRepoPath_TextChanged;
+
+            isInitializing = false; 
         }
 
         private void LoadConfiguration()
@@ -29,17 +45,36 @@ namespace Raindance
             }
             else
             {
-                config = new Configuration(); // Create new configuration if file doesn't exist
+                config = new Configuration();
             }
 
-            // Update form controls with loaded configuration
             txt_IhubRepoPath.Text = config.IhubRepoPath;
-            // Add more controls as needed
+            LoadCheckedListBox(clb_stop, config.StopItems);
+            LoadCheckedListBox(clb_delete, config.DeleteItems);
+            LoadCheckedListBox(clb_run, config.RunItems);
+        }
+
+        private void LoadCheckedListBox(CheckedListBox listBox, System.Collections.Generic.List<ItemWithCheckState> items)
+        {
+            listBox.Items.Clear();
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    int index = listBox.Items.Add(item.Name);
+                    listBox.SetItemChecked(index, item.IsChecked);
+                }
+            }
         }
 
         private void SaveConfiguration()
         {
-            string json = JsonConvert.SerializeObject(config);
+            config.StopItems = GetCheckedListBoxItems(clb_stop);
+            config.DeleteItems = GetCheckedListBoxItems(clb_delete);
+            config.RunItems = GetCheckedListBoxItems(clb_run);
+            config.IhubRepoPath = txt_IhubRepoPath.Text;
+
+            string json = JsonConvert.SerializeObject(config, Formatting.Indented);
             Debug.WriteLine("Serialized JSON: " + json); // Check if JSON serialization is successful
             try
             {
@@ -52,18 +87,53 @@ namespace Raindance
             }
         }
 
-        private void txt_IhubRepoPath_TextChanged(object sender, EventArgs e)
+        private System.Collections.Generic.List<ItemWithCheckState> GetCheckedListBoxItems(CheckedListBox listBox)
         {
-            config.IhubRepoPath = txt_IhubRepoPath.Text;
-            SaveConfiguration();
+            var items = new System.Collections.Generic.List<ItemWithCheckState>();
+            for (int i = 0; i < listBox.Items.Count; i++)
+            {
+                var item = new ItemWithCheckState
+                {
+                    Name = listBox.Items[i].ToString(),
+                    IsChecked = listBox.GetItemChecked(i)
+                };
+                items.Add(item);
+            }
+            return items;
+        }
+        private void OnItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            if (isInitializing) return; 
+            var listBox = sender as CheckedListBox;
+            listBox.BeginInvoke((MethodInvoker)delegate
+            {
+                UpdateCheckState(listBox, e.Index, e.NewValue == CheckState.Checked);
+                SaveConfiguration();
+            });
         }
 
-        // Define the Configuration class here
-        public class Configuration
+        private void UpdateCheckState(CheckedListBox listBox, int index, bool isChecked)
         {
-            public string IhubRepoPath { get; set; }
-            public bool KillVSC { get; set; }
-            // Add more properties as needed
+            if (listBox == clb_stop)
+            {
+                config.StopItems[index].IsChecked = isChecked;
+            }
+            else if (listBox == clb_delete)
+            {
+                config.DeleteItems[index].IsChecked = isChecked;
+            }
+            else if (listBox == clb_run)
+            {
+                config.RunItems[index].IsChecked = isChecked;
+            }
+        }
+
+        private void Txt_IhubRepoPath_TextChanged(object sender, EventArgs e)
+        {
+            if (isInitializing) return; // Prevent saving during initialization
+
+            config.IhubRepoPath = txt_IhubRepoPath.Text;
+            SaveConfiguration();
         }
 
         private void clb_stop_SelectedIndexChanged(object sender, EventArgs e) { }
@@ -91,135 +161,6 @@ namespace Raindance
             }
         }
 
-        private void KillSelectedProcesses()
-        {
-            foreach (string processName in clb_stop.CheckedItems)
-            {
-                try
-                {
-                    // Retrieve all processes matching the name
-                    Process[] processes = Process.GetProcessesByName(processName);
-                    int terminationCount = 0;
-
-                    // Terminate all instances and count the number of terminations
-                    foreach (Process process in processes)
-                    {
-                        process.Kill();
-                        terminationCount++;
-                    }
-
-                    // Report summary based on the count of terminations
-                    if (terminationCount > 0)
-                    {
-                        Logger.LogInformation(
-                            $"Terminated {terminationCount} instance(s) of: {processName}"
-                        );
-                    }
-                    else
-                    {
-                        Logger.LogInformation($"No processes found for: {processName}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log errors while attempting to terminate processes
-                    Logger.LogError(ex, $"Error terminating {processName}");
-                }
-            }
-        }
-
-        private void RunCommandsInRepositoryPath()
-        {
-            // Get the repository path from the configuration
-            string repositoryPath = config.IhubRepoPath;
-            // Check if the path is valid
-            if (Directory.Exists(repositoryPath))
-            {
-                // Get the list of commands to run
-                foreach (string command in clb_run.CheckedItems)
-                {
-                    try
-                    {
-                        // Log the command that is being run
-                        Logger.LogInformation($"Command: {command}");
-
-                        // Create a new process to run the command
-                        ProcessStartInfo startInfo = new ProcessStartInfo
-                        {
-                            FileName = "cmd.exe",
-                            Arguments = $"/c {command}",
-                            WorkingDirectory = repositoryPath,
-                            UseShellExecute = false,
-                            RedirectStandardOutput = true,
-                            CreateNoWindow = true,
-                            RedirectStandardError = true,
-                            StandardErrorEncoding = System.Text.Encoding.UTF8,
-                            StandardOutputEncoding = System.Text.Encoding.UTF8
-                        };
-                        Process process = new Process { StartInfo = startInfo };
-                        process.ErrorDataReceived += (sender, args) =>
-                        {
-                            if (!string.IsNullOrEmpty(args.Data))
-                            {
-                                Logger.LogError(args.Data);
-                            }
-                        };
-                        process.OutputDataReceived += (sender, args) =>
-                        {
-                            if (!string.IsNullOrEmpty(args.Data))
-                            {
-                                Logger.LogInformation(args.Data);
-                            }
-                        };
-                        process.Start();
-                        process.BeginOutputReadLine();
-                        process.WaitForExit();
-                    }
-                    catch (Exception ex)
-                    {
-                        // Log the error message
-                        Logger.LogError(ex, $"Error running command {command}");
-                    }
-                }
-            }
-            else
-            {
-                // Log an error if the repository path is invalid
-                Logger.LogError("Invalid repository path.");
-            }
-        }
-
-        private void DeleteSelectedFolders()
-        {
-            if (string.IsNullOrEmpty(config.IhubRepoPath) || !Directory.Exists(config.IhubRepoPath))
-            {
-                Logger.LogError("Invalid repository path.");
-                return;
-            }
-
-            // delete the selected folders relative to the repository path
-            foreach (string folderName in clb_delete.CheckedItems)
-            {
-                string folderPath = Path.Combine(config.IhubRepoPath, folderName);
-                if (Directory.Exists(folderPath))
-                {
-                    try
-                    {
-                        Directory.Delete(folderPath, true);
-                        Logger.LogInformation($"Deleted folder: {folderName}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogError(ex, $"Error deleting folder: {folderName}");
-                    }
-                }
-                else
-                {
-                    Logger.LogWarning($"Folder not found: {folderName}");
-                }   
-            }
-        }
-
         private async void btn_raindance_Click(object sender, EventArgs e)
         {
             // clear the terminal
@@ -235,9 +176,9 @@ namespace Raindance
             await Task.Run(() =>
             {
                 // Perform the selected actions
-                KillSelectedProcesses();
-                DeleteSelectedFolders();
-                RunCommandsInRepositoryPath();
+                processManager.KillSelectedProcesses();
+                processManager.DeleteSelectedFolders();
+                processManager.RunCommandsInRepositoryPath();
             });
         }
 
@@ -252,5 +193,7 @@ namespace Raindance
                 SaveConfiguration();
             }
         }
+
+        private void clb_delete_SelectedIndexChanged(object sender, EventArgs e) { }
     }
 }
