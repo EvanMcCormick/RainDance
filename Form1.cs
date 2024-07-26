@@ -20,7 +20,7 @@ namespace Raindance
             InitializeComponent();
             var loggerFactory = LoggerFactory.Create(builder =>
             {
-                builder.AddConsole();
+                object value = builder.AddConsole();
             });
             Logger = loggerFactory.CreateLogger<Form1>();
 

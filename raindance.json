@@ -1,0 +1,49 @@
+{
+  "IhubRepoPath": "D:\\Github\\IHUB_Platform",
+  "StopItems": [
+    {
+      "Name": "code",
+      "IsChecked": true
+    },
+    {
+      "Name": "nodejs",
+      "IsChecked": true
+    }
+  ],
+  "DeleteItems": [
+    {
+      "Name": "App/.cache",
+      "IsChecked": true
+    },
+    {
+      "Name": ".nx",
+      "IsChecked": false
+    },
+    {
+      "Name": "node_modules",
+      "IsChecked": true
+    }
+  ],
+  "RunItems": [
+    {
+      "Name": "yarn",
+      "IsChecked": true
+    },
+    {
+      "Name": "yarn build:lighthouse",
+      "IsChecked": true
+    },
+    {
+      "Name": "yarn prestart",
+      "IsChecked": false
+    },
+    {
+      "Name": "npx nx reset",
+      "IsChecked": false
+    },
+    {
+      "Name": "code",
+      "IsChecked": true
+    }
+  ]
+}
