@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Drawing;
+using AxWMPLib;
 
 namespace Raindance
 {
@@ -13,7 +14,7 @@ namespace Raindance
     {
         private Configuration config;
         public ILogger Logger { get; set; }
-        private PictureBox splashImage;
+        private AxWindowsMediaPlayer splashVideo;
         private System.Windows.Forms.Timer splashTimer;
 
         public Form1()
@@ -29,39 +30,85 @@ namespace Raindance
             // Start the timer
             splashTimer.Start();
             
+            // Enable keyboard processing for the form
+            this.KeyPreview = true;
+            this.KeyDown += Form1_KeyDown;
+            
             LoadConfiguration(); // Call the configuration loading method in the constructor
+        }
+        
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            // If space bar is pressed during splash screen
+            if (e.KeyCode == Keys.Space && splashVideo.Visible)
+            {
+                // Skip the splash screen
+                SplashTimer_Tick(this, EventArgs.Empty);
+                
+                // Consume the key press
+                e.Handled = true;
+            }
         }
         
         private void SetupSplashScreen()
         {
-            // Create the splash image
-            splashImage = new PictureBox
+            // Create the splash video player
+            splashVideo = new AxWindowsMediaPlayer
             {
                 Dock = DockStyle.Fill,
-                SizeMode = PictureBoxSizeMode.CenterImage,
                 BackColor = Color.Black,
-                Image = null // You'll add the actual image later
+                Enabled = true,
+                Visible = true,
+                uiMode = "none",    // Hide controls
+                stretchToFit = true // Scale video to fill control
             };
             
             // Create the timer
             splashTimer = new System.Windows.Forms.Timer
             {
-                Interval = 5000, // 5 seconds
+                Interval = 30000, // 30 seconds to match video length
             };
             
             // Set timer event
             splashTimer.Tick += SplashTimer_Tick;
             
-            // Add the splash image to the form
-            this.Controls.Add(splashImage);
-            splashImage.BringToFront();
+            // Add the splash video to the form
+            this.Controls.Add(splashVideo);
+            splashVideo.BringToFront();
+            
+            // Set up video playback
+            splashVideo.PlayStateChange += SplashVideo_PlayStateChange;
+            
+            // Set the video path to the RainDance.mp4 file from Resources folder
+            string videoPath = Path.Combine(Application.StartupPath, "Resources", "RainDance.mp4");
+            if (File.Exists(videoPath))
+            {
+                splashVideo.URL = videoPath;
+                splashVideo.uiMode = "none"; // Hide all controls
+                splashVideo.enableContextMenu = false; // Disable right-click menu
+                splashVideo.stretchToFit = true; // Stretch to fill control
+                splashVideo.Ctlcontrols.play();
+            }
+            else
+            {
+                Logger?.LogWarning($"Splash video not found at: {videoPath}");
+            }
+        }
+        
+        private void SplashVideo_PlayStateChange(object sender, _WMPOCXEvents_PlayStateChangeEvent e)
+        {
+            // When video finishes playing, show the main UI
+            if (e.newState == 8) // 8 = MediaEnded
+            {
+                SplashTimer_Tick(this, EventArgs.Empty);
+            }
         }
         
         private void HideAllControls()
         {
             foreach (Control control in this.Controls)
             {
-                if (control != splashImage)
+                if (control != splashVideo)
                 {
                     control.Visible = false;
                 }
@@ -72,14 +119,15 @@ namespace Raindance
         {
             foreach (Control control in this.Controls)
             {
-                if (control != splashImage)
+                if (control != splashVideo)
                 {
                     control.Visible = true;
                 }
             }
             
-            // Hide the splash image
-            splashImage.Visible = false;
+            // Hide the splash video and stop playback
+            splashVideo.Visible = false;
+            splashVideo.Ctlcontrols.stop();
         }
         
         private void SplashTimer_Tick(object sender, EventArgs e)
