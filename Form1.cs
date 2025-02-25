@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Drawing;
 
 namespace Raindance
 {
@@ -12,11 +13,82 @@ namespace Raindance
     {
         private Configuration config;
         public ILogger Logger { get; set; }
+        private PictureBox splashImage;
+        private System.Windows.Forms.Timer splashTimer;
 
         public Form1()
         {
             InitializeComponent();
+            
+            // Create and setup splash screen components
+            SetupSplashScreen();
+            
+            // Hide all other controls initially
+            HideAllControls();
+            
+            // Start the timer
+            splashTimer.Start();
+            
             LoadConfiguration(); // Call the configuration loading method in the constructor
+        }
+        
+        private void SetupSplashScreen()
+        {
+            // Create the splash image
+            splashImage = new PictureBox
+            {
+                Dock = DockStyle.Fill,
+                SizeMode = PictureBoxSizeMode.CenterImage,
+                BackColor = Color.Black,
+                Image = null // You'll add the actual image later
+            };
+            
+            // Create the timer
+            splashTimer = new System.Windows.Forms.Timer
+            {
+                Interval = 5000, // 5 seconds
+            };
+            
+            // Set timer event
+            splashTimer.Tick += SplashTimer_Tick;
+            
+            // Add the splash image to the form
+            this.Controls.Add(splashImage);
+            splashImage.BringToFront();
+        }
+        
+        private void HideAllControls()
+        {
+            foreach (Control control in this.Controls)
+            {
+                if (control != splashImage)
+                {
+                    control.Visible = false;
+                }
+            }
+        }
+        
+        private void ShowAllControls()
+        {
+            foreach (Control control in this.Controls)
+            {
+                if (control != splashImage)
+                {
+                    control.Visible = true;
+                }
+            }
+            
+            // Hide the splash image
+            splashImage.Visible = false;
+        }
+        
+        private void SplashTimer_Tick(object sender, EventArgs e)
+        {
+            // Stop the timer
+            splashTimer.Stop();
+            
+            // Show all controls
+            ShowAllControls();
         }
 
         private void LoadConfiguration()

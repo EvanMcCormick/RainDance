@@ -2,6 +2,7 @@
 using RainDance.Services.Logging;
 using System;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 
 namespace Raindance
 {
